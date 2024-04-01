@@ -1,7 +1,39 @@
 function timeoutPromise(timeout: number): Promise<Response> {
   return new Promise((_, reject) =>
-    setTimeout(() => reject(new Error("Request timed out")), timeout)
+    setTimeout(() => reject(new Error('Request timed out')), timeout)
   );
+}
+
+/**
+ * Hydrates an HTML template with data from a given URL.
+ *
+ * @param url - The URL to fetch the data from.
+ * @param htmlTemplate - The HTML template to hydrate.
+ * @param templateMarkers - An object containing key-value pairs where the key represents a placeholder in the template and the value represents the corresponding data key in the fetched response.
+ * @returns A Promise that resolves to the hydrated HTML.
+ * @throws If there is an error while hydrating the HTML.
+ */
+async function hydrateHtmlWithTemplate(
+  url: string,
+  htmlTemplate: string,
+  templateMarkers: { [key: string]: string }
+): Promise<string> {
+  try {
+    const responseData = await fetchWrapper<any>(url, { debug: true });
+    let hydratedHtml = htmlTemplate;
+
+    Object.entries(templateMarkers).forEach(([key, marker]) => {
+      hydratedHtml = hydratedHtml.replace(
+        new RegExp(marker, 'g'),
+        responseData[key]
+      );
+    });
+
+    return hydratedHtml;
+  } catch (error) {
+    console.error('Error hydrating HTML with template: ', error);
+    throw error;
+  }
 }
 
 /**
@@ -61,4 +93,4 @@ async function fetchWrapper<T>(
   }
 }
 
-export { fetchWrapper };
+export { fetchWrapper, hydrateHtmlWithTemplate };
